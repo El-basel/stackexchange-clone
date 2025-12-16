@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<H1>Hi {{ user.username }}</H1>
+{% if stacks %}
+    {% for stack in stacks %}
+    <p>{{ stack.title }}</p>
+    <p>{{ stack.description }}</p>
+    {% endfor %}
+{% else %}
+    <p>No available stacks, create one!</p>
+{% endif %}
+<form method="get" action="{% url 'create_stack' %}">
+    {% csrf_token %}
+    <button type="submit">Create Stack</button>
+</form>
+<form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit">Log Out</button>
+</form>
+{% else %}
+<h1>You aren't logged in</h1>
+<a href="{% url 'login' %}">Log In</a>
+{% endif %}
+{% endblock %}

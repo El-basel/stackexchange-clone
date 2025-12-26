@@ -7,8 +7,22 @@
 <H1>Hi {{ user.username }}</H1>
 {% if stacks %}
     {% for stack in stacks %}
-    <p>{{ stack.title }}</p>
+    <a href="{% url 'stack' stack.id stack.slug %}"><p>{{ stack.title }}</p></a>
     <p>{{ stack.description }}</p>
+    {% if stack.id in joined_stacks_ids %}
+    <span>Joined</span>
+    <form method="post" action="{% url 'leave_stack' stack.id %}">
+        {% csrf_token %}
+        <button type="submit">Leave Stack</button>
+    </form>
+    {% else %}
+    <span>Not Joined</span>
+    
+    <form method="post" action="{% url 'join_stack' stack.id %}">
+        {% csrf_token %}
+        <button type="submit">Join Stack</button>
+    </form>
+    {% endif %}
     {% endfor %}
 {% else %}
     <p>No available stacks, create one!</p>

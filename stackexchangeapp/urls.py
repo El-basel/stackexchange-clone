@@ -1,10 +1,13 @@
 from django.urls import path, include
-from .views import SignUpView, HomeView, StackCreationView
+from .views import *
 from django.contrib.auth.decorators import login_required
 
 urlpatterns = [
-    path('', login_required(HomeView.as_view()), name="home"),
+    path('', HomeView.as_view(), name="home"),
     path('accounts/signup/', SignUpView.as_view(), name="signup"),
     path('accounts/', include("django.contrib.auth.urls")),
-    path('create-stack/', login_required(StackCreationView.as_view()), name="create_stack")
+    path('create-stack/', StackCreationView.as_view(), name="create_stack"),
+    path('join-stack/<int:stack_id>', JoinStackView.as_view(), name="join_stack"),
+    path('leave-stack/<int:stack_id>', LeaveStackView.as_view(), name="leave_stack"),
+    path('stack/<int:stack_id>/<slug:stack_slug>', StackDetailView.as_view(),name="stack")
 ]

@@ -9,5 +9,6 @@ urlpatterns = [
     path('create-stack/', StackCreationView.as_view(), name="create_stack"),
     path('join-stack/<int:stack_id>', JoinStackView.as_view(), name="join_stack"),
     path('leave-stack/<int:stack_id>', LeaveStackView.as_view(), name="leave_stack"),
-    path('stack/<int:stack_id>/<slug:stack_slug>', StackDetailView.as_view(),name="stack")
+    path('stack/<int:stack_id>/ask', AskQuestionView.as_view(),name="ask_question"),
+    path('stack/<int:stack_id>/<slug:stack_slug>', StackDetailView.as_view(),name="stack"),
 ]

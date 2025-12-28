@@ -3,5 +3,11 @@
 {% block title %}{{ stack.slug | capfirst }}-Stack{% endblock %}
 
 {% block content %}
-
+<a href="{% url 'ask_question' stack_id=stack.id %}">Ask Question</a>
+{% if questions %}
+    {% for question in questions %}
+        <p>Votes: {{question.votes}}</p>
+        <a href="">{{question.title}}</a>
+    {% endfor %}
+{% endif %}
 {% endblock %}

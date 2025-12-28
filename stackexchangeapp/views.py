@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import UserCreationFormStackApp, StackCreationForm
-from django.urls import reverse_lazy
+from .forms import UserCreationFormStackApp, StackCreationForm, QuestionForm
+from django.urls import reverse_lazy, reverse
 from django.views.generic import CreateView, TemplateView, View
 from .models import *
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -46,5 +46,25 @@ class LeaveStackView(LoginRequiredMixin, CreateView):
 class StackDetailView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         stack = Stack.objects.get(pk=kwargs['stack_id'])
-        context = {'stack': stack}
+        context = {'stack': stack, 'questions':stack.questions.all()}
         return render(request, 'stack.html', context)
+
+class AskQuestionView(LoginRequiredMixin, CreateView):
+    form_class = QuestionForm
+    template_name = 'ask_question.html'
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['stack'] = get_object_or_404(Stack, id=self.kwargs['stack_id'])
+        return kwargs
+
+    def form_valid(self, form):
+        stack = get_object_or_404(Stack, id=self.kwargs['stack_id'])
+        form.instance.asked_by = self.request.user
+        form.instance.stack = stack
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('stack', kwargs={
+            'stack_id': self.object.stack.id,
+            'stack_slug': self.object.stack.slug,
+        })

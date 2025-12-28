@@ -46,11 +46,10 @@ class Tag(models.Model):
 class Question(models.Model):
     title = models.CharField(max_length=30)
     description = models.TextField()
-    votes = models.IntegerField(default=0)
-    asked_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="question")
-    stack = models.ForeignKey(Stack, on_delete=models.CASCADE)
+    asked_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="questions")
+    stack = models.ForeignKey(Stack, on_delete=models.CASCADE, related_name="questions")
     created_at = models.DateTimeField(auto_now_add=True)
-    edited_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="edited_by")
+    edited_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="edited_questions")
     edited_at = models.DateTimeField(null=True, blank=True)
     tags = models.ManyToManyField(Tag)
 
@@ -65,7 +64,6 @@ class Question(models.Model):
 
 class Answer(models.Model):
     description = models.TextField()
-    votes = models.IntegerField(default=0)
     is_accepted = models.BooleanField(default=False)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     answered_by = models.ForeignKey(User, on_delete=models.CASCADE)

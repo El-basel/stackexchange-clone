@@ -11,4 +11,5 @@ urlpatterns = [
     path('leave-stack/<int:stack_id>', LeaveStackView.as_view(), name="leave_stack"),
     path('stack/<int:stack_id>/ask', AskQuestionView.as_view(),name="ask_question"),
     path('stack/<int:stack_id>/<slug:stack_slug>', StackDetailView.as_view(),name="stack"),
+    path('stack/<int:stack_id>/question/<int:question_id>', QuestionDetailView.as_view(), name="question_detail")
 ]

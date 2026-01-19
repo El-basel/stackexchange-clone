@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User, Stack, Question, Tag
+from .models import User, Stack, Question, Tag, Answer
 
 class UserCreationFormStackApp(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -40,4 +40,13 @@ class QuestionForm(forms.ModelForm):
                     question.tags.add(tag)
         return question
 
-    
+class AnswerForm(forms.ModelForm):
+    class Meta:
+        model = Answer
+        fields = ("description",)
+        widgets = {
+            'description': forms.Textarea(attrs={
+                'rows':6, 
+                'placeholder':'Write your answer here...',
+                })
+        }

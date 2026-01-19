@@ -6,8 +6,8 @@
 <a href="{% url 'ask_question' stack_id=stack.id %}">Ask Question</a>
 {% if questions %}
     {% for question in questions %}
-        <p>Votes: {{question.votes}}</p>
-        <a href="">{{question.title}}</a>
+        <p>Votes: {{question.vote_count}}</p>
+        <a href="{% url 'question_detail' stack_id=stack.id question_id=question.pk %}">{{question.title}}</a>
     {% endfor %}
 {% endif %}
 {% endblock %}

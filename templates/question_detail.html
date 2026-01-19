@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ question.stack.slug | capfirst }}-Stack{% endblock %}
+
+{% block content %}
+
+<h1>{{question.title}}</h1>
+<p>{{question.description}}</p>
+<p>{{question.asked_by}}</p>
+<p>{{question.created_at}}</p>
+<p>
+    {% for tag in question.tags.all %}
+        {{tag}}
+    {% endfor %}
+</p>
+<hr>
+<p>{{answers.count}} Answers</p>
+{% for answer in answers %}
+<p>{{answer.vote_count}}</p>
+<p>{{answer.is_accepted}}</p>
+<p>{{answer.description}}</p>
+<p>{{answer.answered_by}}</p>
+<p>{{answer.created_at}}</p>
+ {% if answer.is_accepted %}
+    <span class="accepted">✓ Accepted</span>
+{% endif %}
+{% endfor %}
+<h2>Your Answer</h2>
+<form method="post">
+    {% csrf_token %}
+    {{form.description}}
+    {% if form.description.erros %}
+        <p>{{form.description.errors}}</p>
+    {% endif %}
+    <button type="submit">Post Answer</button>
+</form>
+{% endblock %}

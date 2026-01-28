@@ -5,25 +5,43 @@
 {% block content %}
 
 <h1>{{question.title}}</h1>
+<p>{{question.vote_count}} Votes</p>
 <p>{{question.description}}</p>
-<p>{{question.asked_by}}</p>
-<p>{{question.created_at}}</p>
+<p>Asked by: {{question.asked_by}}</p>
+<p>Created at: {{question.created_at}}</p>
 <p>
     {% for tag in question.tags.all %}
         {{tag}}
     {% endfor %}
 </p>
+<form method="post" action="{% url 'question_vote' question.stack.id question.id 'up' %}">
+    {% csrf_token %}
+    <button type="submit">Upvote</button>
+</form>
+<form method="post" action="{% url 'question_vote' question.stack.id question.id 'down' %}">
+    {% csrf_token %}
+    <button type="submit">Downvote</button>
+</form>
 <hr>
 <p>{{answers.count}} Answers</p>
 {% for answer in answers %}
-<p>{{answer.vote_count}}</p>
-<p>{{answer.is_accepted}}</p>
+<p>{{answer.vote_count}} Votes</p>
 <p>{{answer.description}}</p>
-<p>{{answer.answered_by}}</p>
-<p>{{answer.created_at}}</p>
+<p>Answered by: {{answer.answered_by}}</p>
+<p>Created at: {{answer.created_at}}</p>
  {% if answer.is_accepted %}
     <span class="accepted">✓ Accepted</span>
+{% else %}
+    <span class="not-accepted">x Not Accepted</span>
 {% endif %}
+<form method="post" action="{% url 'answer_vote' question.stack.id question.id answer.id 'up' %}">
+    {% csrf_token %}
+    <button type="submit">Upvote</button>
+</form>
+<form method="post" action="{% url 'answer_vote' question.stack.id question.id answer.id 'down' %}">
+    {% csrf_token %}
+    <button type="submit">Downvote</button>
+</form>
 {% endfor %}
 <h2>Your Answer</h2>
 <form method="post">

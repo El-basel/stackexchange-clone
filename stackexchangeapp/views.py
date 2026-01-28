@@ -48,7 +48,8 @@ class LeaveStackView(LoginRequiredMixin, CreateView):
 class StackDetailView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         stack = Stack.objects.get(pk=kwargs['stack_id'])
-        context = {'stack': stack, 'questions':stack.questions.all()}
+        reputation = request.user.stackmembership_set.filter(stack=stack.id).first().reputation
+        context = {'stack': stack, 'questions':stack.questions.all(), 'reputation':reputation}
         return render(request, 'stack.html', context)
 
 class AskQuestionView(LoginRequiredMixin, CreateView):
@@ -81,8 +82,8 @@ class QuestionDetailView(LoginRequiredMixin, DetailView, FormMixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         answers = self.object.answer_set.annotate(
-            vote_score=Count('vote', filter=Q(vote__vote_type='up')) -
-                        Count('vote', filter=Q(vote__vote_type='down'))
+            vote_score=Count('vote', filter=Q(vote__vote_type=True)) -
+                        Count('vote', filter=Q(vote__vote_type=False))
         ).order_by('-vote_score', '-created_at')
         context['answers'] = answers
         if 'form' not in context:
@@ -111,3 +112,108 @@ class QuestionDetailView(LoginRequiredMixin, DetailView, FormMixin):
             'stack_id': self.object.stack.id,
             'question_id':self.object.id,
         })
+
+class UpDownVoteView(LoginRequiredMixin, View):
+    def post(self, request, stack_id, question_id, vote_type, answer_id=None):
+        # Get objects
+        stack = get_object_or_404(Stack, pk=stack_id)
+        question = get_object_or_404(Question, pk=question_id)
+        answer = get_object_or_404(Answer, pk=answer_id) if answer_id else None
+        
+        # Determine what we're voting on
+        if answer:
+            target_object = answer
+            content_owner = answer.answered_by
+            vote_filter = {'user': request.user, 'answer': answer}
+            vote_create = {'answer': answer}
+        else:
+            target_object = question
+            content_owner = question.asked_by
+            vote_filter = {'user': request.user, 'question': question}
+            vote_create = {'question': question}
+        
+        # Can't vote on your own content
+        if request.user == content_owner:
+            return redirect('question_detail', stack_id=stack_id, question_id=question_id)
+        
+        # Get memberships
+        owner_membership = StackMembership.objects.filter(
+            user=content_owner, 
+            stack=stack
+        ).first()
+        
+        voter_membership = StackMembership.objects.filter(
+            user=request.user, 
+            stack=stack
+        ).first()
+        
+        # Check memberships exist
+        if not owner_membership or not voter_membership:
+            return redirect('question_detail', stack_id=stack_id, question_id=question_id)
+        
+        # Check for existing vote
+        existing_vote = Vote.objects.filter(**vote_filter).first()
+        
+        if existing_vote:
+            # Undo old vote reputation
+            self._undo_reputation(
+                existing_vote.vote_type, 
+                owner_membership, 
+                voter_membership,
+                is_answer=bool(answer)
+            )
+            
+            if existing_vote.vote_type == vote_type:
+                # Toggle off - just delete
+                existing_vote.delete()
+            else:
+                # Change vote
+                existing_vote.vote_type = vote_type
+                existing_vote.save()
+                
+                # Apply new vote reputation
+                self._apply_reputation(
+                    vote_type, 
+                    owner_membership, 
+                    voter_membership,
+                    is_answer=bool(answer)
+                )
+        else:
+            # Create new vote
+            Vote.objects.create(
+                user=request.user,
+                vote_type=vote_type,
+                **vote_create
+            )
+            
+            # Apply reputation
+            self._apply_reputation(
+                vote_type, 
+                owner_membership, 
+                voter_membership,
+                is_answer=bool(answer)
+            )
+        
+        # Save memberships
+        owner_membership.save()
+        voter_membership.save()
+        
+        return redirect('question_detail', stack_id=stack_id, question_id=question_id)
+    
+    def _apply_reputation(self, vote_type, owner_membership, voter_membership, is_answer):
+        """Apply reputation changes for a vote"""
+        if vote_type == 'up':
+            owner_membership.reputation += 10
+        else:  # downvote
+            owner_membership.reputation -= 2
+            if is_answer:
+                voter_membership.reputation -= 1  # Cost to downvote answer
+    
+    def _undo_reputation(self, vote_type, owner_membership, voter_membership, is_answer):
+        """Undo reputation changes when removing/changing a vote"""
+        if vote_type == 'up':
+            owner_membership.reputation -= 10
+        else:  # downvote
+            owner_membership.reputation += 2
+            if is_answer:
+                voter_membership.reputation += 1  # Refund downvote cost

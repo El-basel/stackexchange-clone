@@ -74,6 +74,8 @@ class Answer(models.Model):
         upvotes = self.vote_set.filter(vote_type='up').count()
         downvotes = self.vote_set.filter(vote_type='down').count()
         return upvotes - downvotes
+    def __str__(self):
+        return str(self.answered_by) + ' ' + str(self.created_at) 
 
 class Comment(models.Model):
     description = models.TextField(max_length=600)
@@ -92,22 +94,25 @@ class Vote(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE, null=True, blank=True)
     answer = models.ForeignKey(Answer, on_delete=models.CASCADE, null=True, blank=True)
-    vote_type = models.CharField(max_length=4, choices=VOTE_CHOICES)
+    vote_type = models.CharField(max_length=4, choices=VOTE_CHOICES, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'question'],
-                condition=models.Q(question__isnull=False),
+                condition=models.Q(question__isnull=False, answer__isnull=True),
                 name='unique_user_question_vote'
             ),
             models.UniqueConstraint(
                 fields=['user', 'answer'],
-                condition=models.Q(answer__isnull=False),
+                condition=models.Q(answer__isnull=False, question__isnull=True),
                 name='unique_user_answer_vote'
             ),
         ]
     def clean(self):
         if not (bool(self.question) ^ bool(self.answer)):
             raise ValidationError("Vote must be on either question or answer")
+        
+    def __str__(self):
+        return self.vote_type + ' ' + str(self.user) + ' ' + str(self.question) + ' ' + str(self.answer)

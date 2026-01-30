@@ -3,40 +3,57 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-{% if user.is_authenticated %}
-<H1>Hi {{ user.username }}</H1>
-{% if stacks %}
+<div class="mb-8 flex justify-between items-center">
+    <h1 class="text-3xl font-bold text-gray-900">Available Stacks</h1>
+    <a href="{% url 'create_stack' %}" 
+       class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+        Create Stack
+    </a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for stack in stacks %}
-    <a href="{% url 'stack' stack.id stack.slug %}"><p>{{ stack.title }}</p></a>
-    <p>{{ stack.description }}</p>
-    {% if stack.id in joined_stacks_ids %}
-    <span>Joined</span>
-    <form method="post" action="{% url 'leave_stack' stack.id %}">
-        {% csrf_token %}
-        <button type="submit">Leave Stack</button>
-    </form>
-    {% else %}
-    <span>Not Joined</span>
-    
-    <form method="post" action="{% url 'join_stack' stack.id %}">
-        {% csrf_token %}
-        <button type="submit">Join Stack</button>
-    </form>
-    {% endif %}
+    <div class="bg-white rounded-lg shadow hover:shadow-md transition p-6 border">
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">
+            <a href="{% url 'stack' stack_id=stack.id stack_slug=stack.slug%}" class="hover:text-blue-600">
+                {{ stack.title }}
+            </a>
+        </h2>
+        <p class="text-gray-600 mb-4 line-clamp-2">
+            {{ stack.description|truncatewords:20 }}
+        </p>
+        <div class="flex items-center justify-between">
+            {% if stack.id in joined_stacks_ids %}
+                <span class="inline-flex items-center text-green-600 text-sm">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Joined
+                </span>
+                
+                <form method="post" action="{% url 'leave_stack' stack_id=stack.id %}">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="text-red-600 hover:text-red-800 text-sm font-medium">
+                        Leave
+                    </button>
+                </form>
+            {% else %}
+                <span class="text-gray-500 text-sm">Not joined</span>
+                
+                <form method="post" action="{% url 'join_stack' stack_id=stack.id %}">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition">
+                        Join
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center py-12">
+        <p class="text-gray-500 text-lg">No stacks yet. Be the first to create one!</p>
+    </div>
     {% endfor %}
-{% else %}
-    <p>No available stacks, create one!</p>
-{% endif %}
-<form method="get" action="{% url 'create_stack' %}">
-    {% csrf_token %}
-    <button type="submit">Create Stack</button>
-</form>
-<form method="post" action="{% url 'logout' %}">
-    {% csrf_token %}
-    <button type="submit">Log Out</button>
-</form>
-{% else %}
-<h1>You aren't logged in</h1>
-<a href="{% url 'login' %}">Log In</a>
-{% endif %}
+</div>
 {% endblock %}

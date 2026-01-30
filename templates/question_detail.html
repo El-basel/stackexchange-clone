@@ -4,52 +4,131 @@
 
 {% block content %}
 
-<h1>{{question.title}}</h1>
-<p>{{question.vote_count}} Votes</p>
-<p>{{question.description}}</p>
-<p>Asked by: {{question.asked_by}}</p>
-<p>Created at: {{question.created_at}}</p>
-<p>
-    {% for tag in question.tags.all %}
-        {{tag}}
-    {% endfor %}
-</p>
-<form method="post" action="{% url 'question_vote' question.stack.id question.id 'up' %}">
-    {% csrf_token %}
-    <button type="submit">Upvote</button>
-</form>
-<form method="post" action="{% url 'question_vote' question.stack.id question.id 'down' %}">
-    {% csrf_token %}
-    <button type="submit">Downvote</button>
-</form>
+<div class="bg-white rounded-lg shadow p-6 mb-6 border">
+    <h1 class="text-2xl font-bold text-gray-900 mb-4">{{ question.title }}</h1>
+    
+    <div class="flex gap-4">
+        <!-- Vote Buttons -->
+        <div class="flex flex-col items-center space-y-2">
+            <form method="post" action="{% url 'question_vote' stack_id=question.stack.id question_id=question.id vote_type='up' %}">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="text-gray-400 hover:text-orange-500 transition">
+                    <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+            </form>
+            
+            <span class="text-2xl font-bold text-gray-700">{{ question.vote_count|default:0 }}</span>
+            
+            <form method="post" action="{% url 'question_vote' stack_id=question.stack.id question_id=question.id vote_type='down' %}">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="text-gray-400 hover:text-blue-500 transition">
+                    <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+        
+        <!-- Question Content -->
+        <div class="flex-1">
+            <div class="prose max-w-none mb-4">
+                <p class="text-gray-700 whitespace-pre-wrap">{{ question.description }}</p>
+            </div>
+            
+            <!-- Tags -->
+            <div class="flex flex-wrap gap-2 mb-4">
+                {% for tag in question.tags.all %}
+                <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                    {{ tag.name }}
+                </span>
+                {% endfor %}
+            </div>
+            
+            <!-- Meta -->
+            <div class="flex items-center justify-between text-sm text-gray-500 pt-4 border-t">
+                <span>Asked {{ question.created_at|timesince }} ago</span>
+                <span class="font-medium text-gray-700">{{ question.asked_by.username }}</span>
+            </div>
+        </div>
+    </div>
+</div>
 <hr>
-<p>{{answers.count}} Answers</p>
-{% for answer in answers %}
-<p>{{answer.vote_count}} Votes</p>
-<p>{{answer.description}}</p>
-<p>Answered by: {{answer.answered_by}}</p>
-<p>Created at: {{answer.created_at}}</p>
- {% if answer.is_accepted %}
-    <span class="accepted">✓ Accepted</span>
-{% else %}
-    <span class="not-accepted">x Not Accepted</span>
-{% endif %}
-<form method="post" action="{% url 'answer_vote' question.stack.id question.id answer.id 'up' %}">
-    {% csrf_token %}
-    <button type="submit">Upvote</button>
-</form>
-<form method="post" action="{% url 'answer_vote' question.stack.id question.id answer.id 'down' %}">
-    {% csrf_token %}
-    <button type="submit">Downvote</button>
-</form>
-{% endfor %}
-<h2>Your Answer</h2>
-<form method="post">
-    {% csrf_token %}
-    {{form.description}}
-    {% if form.description.erros %}
-        <p>{{form.description.errors}}</p>
-    {% endif %}
-    <button type="submit">Post Answer</button>
-</form>
+<div class="mb-6">
+    <h2 class="text-xl font-bold text-gray-900 mb-4">
+        {{ answers.count }} Answer{{ answers.count|pluralize }}
+    </h2>
+    
+    <div class="space-y-4">
+        {% for answer in answers %}
+        <div class="bg-white rounded-lg shadow p-6 border {% if answer.is_accepted %}border-green-500 border-2{% endif %}">
+            <div class="flex gap-4">
+                <!-- Vote Buttons -->
+                <div class="flex flex-col items-center space-y-2">
+                    <form method="post" action="{% url 'answer_vote' stack_id=question.stack.id question_id=question.id answer_id=answer.id vote_type='up' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="text-gray-400 hover:text-orange-500">
+                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </form>
+                    
+                    <span class="text-xl font-bold">{{ answer.vote_count|default:0 }}</span>
+                    
+                    <form method="post" action="{% url 'answer_vote' stack_id=question.stack.id question_id=question.id answer_id=answer.id vote_type='down' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="text-gray-400 hover:text-blue-500">
+                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </form>
+                    
+                    {% if answer.is_accepted %}
+                    <svg class="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    {% endif %}
+                </div>
+                
+                <!-- Answer Content -->
+                <div class="flex-1">
+                    <p class="text-gray-700 mb-4 whitespace-pre-wrap">{{ answer.description }}</p>
+                    
+                    <div class="flex items-center justify-between text-sm text-gray-500 pt-4 border-t">
+                        <span>Answered {{ answer.created_at|timesince }} ago</span>
+                        <span class="font-medium text-gray-700">{{ answer.answered_by.username }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-gray-500 text-center py-8">No answers yet. Be the first to answer!</p>
+        {% endfor %}
+    </div>
+</div>
+<div class="bg-white rounded-lg shadow p-6 border">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Your Answer</h3>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+            <textarea name="description" 
+                      rows="6" 
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Write your answer here..."
+                      required></textarea>
+        </div>
+        
+        <button type="submit" 
+                class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
+            Post Answer
+        </button>
+    </form>
+</div>
 {% endblock %}

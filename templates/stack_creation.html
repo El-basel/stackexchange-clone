@@ -3,10 +3,43 @@
 {% block title %}Create Stack{% endblock %}
 
 {% block content %}
-<h2>Create Stack</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form }}
-    <button type="submit">Create</button>
-</form>
+<div class="max-w-3xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-900 mb-6">Create Stack</h1>
+        <div class="bg-white rounded-lg shadow p-6 border">
+            <form method="post">
+            {% csrf_token %}
+            
+            <!-- Title -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Title
+                </label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">Create a general name for a category</p>
+            </div>
+            
+            <!-- Description -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Submit -->
+            <div class="flex gap-4">
+                <button type="submit" 
+                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
+                    Create Stack
+                </button>
+            </div>
+        </form>
+        </div>
+</div>
 {% endblock %}

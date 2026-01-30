@@ -3,12 +3,82 @@
 {% block title %}{{ stack.slug | capfirst }}-Stack{% endblock %}
 
 {% block content %}
-<p>Reputation: {{ reputation }}</p>
+<div class="mb-8">
+    <div class="flex justify-between items-start mb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ stack.title }}</h1>
+            <p class="text-gray-600">{{ stack.description }}</p>
+            <p class="text-gray-600">{{ reputation }} Reputation</p>
+        </div>
+        
+        <a href="{% url 'ask_question' stack_id=stack.id %}" 
+           class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition whitespace-nowrap">
+            Ask Question
+        </a>
+    </div>
+</div>
+<div class="space-y-4">
+    {% for question in questions %}
+    <div class="bg-white rounded-lg shadow hover:shadow-md transition p-6 border">
+        <div class="flex gap-4">
+            <!-- Vote Stats -->
+            <div class="flex flex-col items-center text-gray-600 text-sm space-y-2">
+                <div class="text-center">
+                    <div class="font-semibold text-lg">{{ question.vote_count|default:0 }}</div>
+                    <div class="text-xs">votes</div>
+                </div>
+                <div class="text-center">
+                    <div class="font-semibold text-lg">{{ question.answers.count }}</div>
+                    <div class="text-xs">answers</div>
+                </div>
+            </div>
+            
+            <!-- Question Content -->
+            <div class="flex-1">
+                <h2 class="text-lg font-semibold text-gray-900 mb-2">
+                    <a href="{% url 'question_detail' stack_id=stack.id question_id=question.id %}" 
+                       class="hover:text-blue-600">
+                        {{ question.title }}
+                    </a>
+                </h2>
+                
+                <p class="text-gray-600 mb-3 line-clamp-2">
+                    {{ question.description|truncatewords:30 }}
+                </p>
+                
+                <!-- Tags -->
+                <div class="flex flex-wrap gap-2 mb-3">
+                    {% for tag in question.tags.all %}
+                    <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                        {{ tag.name }}
+                    </span>
+                    {% endfor %}
+                </div>
+                
+                <!-- Meta Info -->
+                <div class="flex items-center justify-between text-sm text-gray-500">
+                    <span>Asked by <span class="font-medium">{{ question.asked_by.username }}</span></span>
+                    <span>{{ question.created_at|timesince }} ago</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-12 bg-white rounded-lg border">
+        <p class="text-gray-500 text-lg mb-4">No questions yet.</p>
+        <a href="{% url 'ask_question' stack_id=stack.id %}" 
+           class="text-blue-600 hover:text-blue-800 font-medium">
+            Be the first to ask!
+        </a>
+    </div>
+    {% endfor %}
+</div>
+<!-- <p>Reputation: {{ reputation }}</p>
 <a href="{% url 'ask_question' stack_id=stack.id %}">Ask Question</a>
 {% if questions %}
     {% for question in questions %}
         <p>Votes: {{question.vote_count}}</p>
         <a href="{% url 'question_detail' stack_id=stack.id question_id=question.pk %}">{{question.title}}</a>
     {% endfor %}
-{% endif %}
+{% endif %} -->
 {% endblock %}

@@ -8,6 +8,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q, Count
 # Create your views here.
 
+class ErrorView():
+    def get(request):
+        return render(request, '404.html')
+
 class SignUpView(CreateView):
     form_class = UserCreationFormStackApp
     success_url = reverse_lazy("login")
@@ -34,22 +38,22 @@ class StackCreationView(LoginRequiredMixin, CreateView):
 class JoinStackView(LoginRequiredMixin, CreateView):
     def post(self, request, *args, **kwargs):
         stack_id = kwargs['stack_id']
-        stack = Stack.objects.get(pk=stack_id)
+        stack = get_object_or_404(Stack, pk=stack_id)
         StackMembership.objects.get_or_create(user=request.user, stack=stack, defaults={'reputation':0})
         return redirect('home')
     
 class LeaveStackView(LoginRequiredMixin, CreateView):
     def post(self, request, *args, **kwargs):
         stack_id = kwargs['stack_id']
-        stack = Stack.objects.get(pk=stack_id)
+        stack = get_object_or_404(Stack, pk=stack_id)
         StackMembership.objects.filter(user=request.user, stack=stack).delete()
         return redirect('home')
     
 class StackDetailView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         stack = Stack.objects.get(pk=kwargs['stack_id'])
-        reputation = request.user.stackmembership_set.filter(stack=stack.id).first().reputation
-        context = {'stack': stack, 'questions':stack.questions.all(), 'reputation':reputation}
+        membership = get_object_or_404(StackMembership, user=request.user, stack=stack)
+        context = {'stack': stack, 'questions':stack.questions.all(), 'membership':membership}
         return render(request, 'stack.html', context)
 
 class AskQuestionView(LoginRequiredMixin, CreateView):

@@ -1,6 +1,7 @@
 from django.urls import path, include
 from .views import *
 from django.contrib.auth.decorators import login_required
+from django.conf.urls import handler404
 
 urlpatterns = [
     path('', HomeView.as_view(), name="home"),
@@ -15,3 +16,5 @@ urlpatterns = [
     path('stack/<int:stack_id>/question/<int:question_id>/<str:vote_type>', UpDownVoteView.as_view(), name='question_vote'),
     path('stack/<int:stack_id>/answer/<int:question_id>/<int:answer_id>/<str:vote_type>', UpDownVoteView.as_view(), name='answer_vote'),
 ]
+
+handler404 = 'stackexchangeapp.views.ErrorView'

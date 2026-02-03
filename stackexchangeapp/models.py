@@ -77,17 +77,6 @@ class Answer(models.Model):
     def __str__(self):
         return str(self.answered_by) + ' ' + str(self.created_at) 
 
-class Comment(models.Model):
-    description = models.TextField(max_length=600)
-    comment_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, null=True, blank=True)
-    answer = models.ForeignKey(Answer, on_delete=models.CASCADE, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    def clean(self):
-        if not (bool(self.question) ^ bool(self.answer)):
-            raise ValidationError("Comment must be on either question or answer")
-
 class Vote(models.Model):
     VOTE_CHOICES = [('up', 'Upvote'), ('down', 'Downvote')]
     

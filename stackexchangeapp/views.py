@@ -88,7 +88,7 @@ class QuestionDetailView(LoginRequiredMixin, DetailView, FormMixin):
         answers = self.object.answer_set.annotate(
             vote_score=Count('vote', filter=Q(vote__vote_type=True)) -
                         Count('vote', filter=Q(vote__vote_type=False))
-        ).order_by('-vote_score', '-created_at')
+        ).order_by('-vote_score')
         context['answers'] = answers
         if 'form' not in context:
             context['form'] = self.get_form()
@@ -116,6 +116,25 @@ class QuestionDetailView(LoginRequiredMixin, DetailView, FormMixin):
             'stack_id': self.object.stack.id,
             'question_id':self.object.id,
         })
+
+class AcceptAnswerView(View):
+    def post(self, request, stack_id, question_id, answer_id):
+        answer = get_object_or_404(Answer, id=answer_id)
+        accepted_answer = Answer.objects.filter(question=answer.question, is_accepted=True).first()
+        accept = request.POST.get('accept', '')
+        if accepted_answer:
+            accepted_answer.is_accepted = False
+            answer.is_accepted = True
+            answer.save()
+            accepted_answer.save()
+        else:
+            if accept == "True":
+                answer.is_accepted=True
+                answer.save()
+            elif accept == "False":
+                answer.is_accepted=False
+                answer.save()
+        return redirect('question_detail', stack_id=stack_id, question_id=question_id)
 
 class UpDownVoteView(LoginRequiredMixin, View):
     def post(self, request, stack_id, question_id, vote_type, answer_id=None):

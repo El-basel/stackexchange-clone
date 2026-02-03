@@ -19,10 +19,10 @@ class SignUpView(CreateView):
 
 class HomeView(LoginRequiredMixin, TemplateView):
     template_name = "home.html"
-    stacks = Stack.objects.all()
     def get(self, request, *args, **kwargs):
+        stacks = Stack.objects.all()
         joined_stacks_ids = StackMembership.objects.filter(user=request.user).values_list('stack_id', flat=True)
-        context = {"user": request.user, "stacks": self.stacks, 'joined_stacks_ids':joined_stacks_ids}
+        context = {"user": request.user, "stacks": stacks, 'joined_stacks_ids':joined_stacks_ids}
         return render(request, self.template_name, context)
 
 class StackCreationView(LoginRequiredMixin, CreateView):
